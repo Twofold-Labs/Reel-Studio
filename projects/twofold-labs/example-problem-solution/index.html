@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1350" />
+    <script src="assets/vendor/gsap.min.js"></script>
+    <link rel="stylesheet" href="assets/brand/tokens.css" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1080px; height: 1350px; overflow: hidden; background: var(--brand-bg); }
+      #root { position: relative; width: 1080px; height: 1350px; overflow: hidden; font-family: var(--font-body); color: var(--brand-text); }
+      .layer { position: absolute; inset: 0; }
+      #bg { background: radial-gradient(ellipse at 50% 48%, #12304f 0%, var(--brand-bg) 62%, #050d17 100%); }
+      #dots { background-image: radial-gradient(rgba(255,255,255,.07) 2px, transparent 2px); background-size: 54px 54px; }
+      #cam { position: absolute; inset: 0; transform-origin: 50% 50%; }
+      .slam { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center;
+              font-family: var(--font-heading); font-size: 140px; line-height: 1.08; letter-spacing: 3px; opacity: 0; }
+      .slam.accent { color: var(--brand-accent); }
+      #net { position: absolute; inset: 0; width: 1080px; height: 1350px; opacity: 0; }
+      .link { stroke: var(--brand-accent); stroke-width: 4; opacity: 0; }
+      .node { fill: var(--brand-surface); stroke: #7f93ad; stroke-width: 3; }
+      .lit { fill: var(--brand-accent); opacity: 0; }
+      .hub { fill: var(--brand-accent); stroke: #fff3d6; stroke-width: 4; }
+      #payoff { position: absolute; top: 150px; left: 0; right: 0; text-align: center; font-family: var(--font-heading);
+                font-size: 112px; color: var(--brand-accent); letter-spacing: 3px; opacity: 0; }
+      #promise { position: absolute; top: 290px; left: 0; right: 0; text-align: center; font-size: 36px; color: var(--brand-text); opacity: 0; }
+      #cta { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; opacity: 0; }
+      #cta .name { font-family: var(--font-heading); font-size: 92px; letter-spacing: 6px; }
+      #cta .url { font-family: var(--font-heading); font-size: 40px; color: var(--brand-accent); letter-spacing: 2px; }
+      #cta .sub { font-size: 30px; color: var(--brand-muted); letter-spacing: 2px; }
+      #fade { background: var(--brand-bg); opacity: 1; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="12" data-width="1080" data-height="1350">
+      <div id="bg" class="layer clip" data-start="0" data-duration="12" data-track-index="0"></div>
+      <div id="dots" class="layer clip" data-start="0" data-duration="12" data-track-index="1"></div>
+
+      <div id="cam">
+          <div class="safe">
+            <div id="s1" class="slam">SEVEN TOOLS.<br />ZERO SYNC.</div>
+            <div id="s2" class="slam">MANUAL<br />RE-ENTRY.</div>
+            <div id="s3" class="slam accent">SOUND<br />FAMILIAR?</div>
+            <div id="payoff">ONE FLOW.</div>
+            <div id="promise">Systems that actually work together.</div>
+          </div>
+          <svg id="net" viewBox="0 0 1080 1350" xmlns="http://www.w3.org/2000/svg"></svg>
+          <div id="cta">
+            <div class="name">TWOFOLD LABS</div>
+            <div class="url">twofold-labs.com</div>
+            <div class="sub">Tell us what's fragmented</div>
+          </div>
+      </div>
+
+      <div id="fade" class="layer clip" data-start="0" data-duration="12" data-track-index="9"></div>
+      <audio id="bed" src="audio/bed.wav" data-start="0" data-duration="12" data-track-index="90" data-volume="0.9"></audio>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const NS = "http://www.w3.org/2000/svg";
+      const cx = 540, cy = 800, R = 300, N = 8;
+
+      // ---- network (built once, seek-safe: only transforms/opacity are animated) ----
+      const net = document.getElementById("net");
+      const mk = (tag, attrs, cls) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (cls) e.setAttribute("class", cls); net.appendChild(e); return e; };
+      const scatter = [[-300,-250],[260,-300],[330,40],[-340,60],[-120,300],[200,280],[-260,-60],[120,-340]];
+      const pts = Array.from({ length: N }, (_, k) => { const a = (2 * Math.PI * k) / N - Math.PI / 2; return [cx + R * Math.cos(a), cy + R * 0.82 * Math.sin(a)]; });
+      const links = pts.map(([x, y]) => mk("line", { x1: cx, y1: cy, x2: x, y2: y }, "link"));
+      const nodes = pts.map(([x, y]) => { const g = mk("g", {}); [mk("circle", { cx: x, cy: y, r: 26 }, "node"), mk("circle", { cx: x, cy: y, r: 26 }, "lit")].forEach((c) => g.appendChild(c)); return g; });
+      const hub = mk("circle", { cx, cy, r: 50 }, "hub");
+      gsap.set(hub, { svgOrigin: `${cx} ${cy}`, scale: 0 });
+
+      // ---- loop-safe fades ----
+      tl.fromTo("#fade", { opacity: 1 }, { opacity: 0, duration: 0.25, ease: "none" }, 0);
+      tl.to("#fade", { opacity: 1, duration: 0.45, ease: "none" }, 11.55);
+
+      // ---- camera path on ONE element: slow push-in (precise preset) + punches on the beat ----
+      // Drift is linear 1 -> 1.035; each punch jumps +amp above the drift line then settles back onto it.
+      const DUR = 12, drift = (t) => 1 + (0.035 * t) / DUR;
+      const punches = [0.1, 1.3, 2.4, 8.3].map((t) => ({ t, amp: 0.025 }));
+      let cur = 0;
+      tl.set("#cam", { scale: 1 }, 0);
+      punches.forEach(({ t, amp }) => {
+        if (t > cur) tl.to("#cam", { scale: drift(t), duration: t - cur, ease: "none" }, cur);
+        tl.set("#cam", { scale: drift(t) + amp }, t);
+        tl.to("#cam", { scale: drift(t + 0.4), duration: 0.4, ease: "power3.out" }, t);
+        cur = t + 0.4;
+      });
+      tl.to("#cam", { scale: drift(DUR), duration: DUR - cur, ease: "none" }, cur);
+
+      // ---- hook: three slam cuts (the camera punches on each, see the camera path above) ----
+      const slam = (id, t, hold) => {
+        tl.fromTo(id, { opacity: 0, scale: 1.55 }, { opacity: 1, scale: 1, duration: 0.16, ease: "power4.out" }, t);
+        tl.to(id, { opacity: 0, duration: 0.08, ease: "none" }, t + hold - 0.08);
+      };
+      slam("#s1", 0.1, 1.2); slam("#s2", 1.3, 1.1); slam("#s3", 2.4, 1.2);
+
+      // ---- fragmented -> one flow ----
+      tl.to("#net", { opacity: 1, duration: 0.3 }, 3.6);
+      nodes.forEach((g, i) => tl.fromTo(g, { x: scatter[i][0], y: scatter[i][1] }, { x: 0, y: 0, duration: 1.4, ease: "power2.inOut" }, 3.9));
+      tl.fromTo("#payoff", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 3.9);
+      tl.to(hub, { scale: 1, duration: 0.5, ease: "back.out(1.7)" }, 4.6);
+      links.forEach((l, i) => { tl.to(l, { opacity: 1, duration: 0.25 }, 5.2 + i * 0.14); tl.to(nodes[i].querySelector(".lit"), { opacity: 1, duration: 0.25 }, 5.3 + i * 0.14); });
+      tl.fromTo("#promise", { opacity: 0 }, { opacity: 0.85, duration: 0.6, ease: "power2.out" }, 6.4);
+
+      // ---- CTA ----
+      tl.to(["#net", "#payoff", "#promise"], { opacity: 0, duration: 0.4 }, 8.0);
+      tl.fromTo("#cta", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, 8.3);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

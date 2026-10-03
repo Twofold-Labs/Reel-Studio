@@ -1,0 +1,35 @@
+# OUR brief: the user's intake answers + approval. Edit via: node tools/reel.mjs answer <project> key=value ...
+# BRIEF.md (for HyperFrames) is generated from this file by `reel sync`.
+brand: twofold-labs
+idea: "Fragmented tools waste time: Twofold connects them"
+_decided_by:
+  idea: user
+  objective: user
+  duration: user
+  style_preset: user
+  cta: user
+  format_preset: defaults
+  style_energy: defaults
+  audio_music: defaults
+  audio_sfx: defaults
+  audio_voiceover: defaults
+  assets_logo: defaults
+  assets_other: defaults
+  storyboard: defaults
+objective: promote
+duration: 12
+style:
+  preset: precise
+  energy: medium
+cta: "{url}"
+format:
+  preset: feed_4x5
+audio:
+  music: synth
+  sfx: yes
+  voiceover: none
+assets:
+  logo: skip
+  other: none
+storyboard: no
+approved: true

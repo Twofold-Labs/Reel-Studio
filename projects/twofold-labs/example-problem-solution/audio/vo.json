@@ -1,0 +1,47 @@
+{
+  "voice": "am_michael",
+  "speed": 0.95,
+  "words_available": true,
+  "lines": [
+    {
+      "n": 1,
+      "text": "Seven tools. Zero sync. Sound familiar?",
+      "file": "audio\\vo_1.wav",
+      "start": 0.8,
+      "duration": 2.94,
+      "end": 3.74,
+      "words": [
+        {
+          "text": "Seven",
+          "start": 0,
+          "end": 0.48
+        },
+        {
+          "text": "tools",
+          "start": 0.48,
+          "end": 0.88
+        },
+        {
+          "text": "zero",
+          "start": 1.04,
+          "end": 1.44
+        },
+        {
+          "text": "sync",
+          "start": 1.44,
+          "end": 1.84
+        },
+        {
+          "text": "sound",
+          "start": 2,
+          "end": 2.4
+        },
+        {
+          "text": "familiar.",
+          "start": 2.4,
+          "end": 2.8
+        }
+      ]
+    }
+  ]
+}

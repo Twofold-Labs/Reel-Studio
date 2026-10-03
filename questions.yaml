@@ -1,0 +1,156 @@
+# Single source of truth for the intake. Claude asks every question still unanswered
+# (anything the user already said in their prompt is recorded first, never re-asked).
+#   core: true     -> never auto-defaulted; the user must answer
+#   optional: true -> not required for the brief to be complete
+#   when: {id: value | [values]}  -> only asked if that earlier answer matches (id may be _brand_has_logo)
+#   options[].value is stored; label/note are shown. free: true -> the user may type their own answer.
+questions:
+  - id: brand
+    q: "Which brand is this reel for?"
+    core: true
+    free: true
+    options_from: brands          # existing brands + "New brand (send me its website)"
+
+  - id: idea
+    q: "What's the idea? In one or two sentences: what should someone understand or feel after watching?"
+    core: true
+    free: true
+
+  - id: objective
+    q: "What should this reel achieve?"
+    options:
+      - {value: awareness, label: "Brand intro / awareness", note: "Who we are, memorably"}
+      - {value: educate,   label: "Educate", note: "Explain one idea or belief"}
+      - {value: promote,   label: "Promote a service / offer", note: "Drive enquiries"}
+      - {value: proof,     label: "Social proof", note: "A real result, stat or milestone"}
+      - {value: announce,  label: "Announce something", note: "Launch, update, news"}
+
+  - id: audience
+    q: "Who is it for?"
+    optional: true
+    free: true
+    options:
+      - {value: founders,   label: "Founders / business owners"}
+      - {value: tech_leads, label: "CTOs / tech leads / developers"}
+      - {value: consumers,  label: "General consumers"}
+      - {value: existing,   label: "Existing clients"}
+
+  - id: format.preset
+    q: "Which format?"
+    options:
+      - {value: feed_4x5,   label: "Feed 4:5 (1080×1350)", note: "Best for the profile grid and feed", recommended: true}
+      - {value: reel_9x16,  label: "Reel / Story 9:16 (1080×1920)", note: "Full-screen vertical; the UI covers the top and bottom, so content stays in the safe zone"}
+      - {value: square_1x1, label: "Square 1:1 (1080×1080)"}
+
+  - id: duration
+    q: "How long?"
+    free: true
+    options:
+      - {value: 8,  label: "8 s", note: "One punchy idea; loops well", recommended: true}
+      - {value: 12, label: "12 s", note: "Setup + payoff"}
+      - {value: 20, label: "20 s", note: "A small story, usually with a voiceover"}
+      - {value: 30, label: "30 s", note: "Explainer; needs a strong hook and voiceover/captions"}
+
+  - id: style.preset
+    q: "Which visual style?"
+    options:
+      - {value: precise,   label: "Precise", note: "Calm, mechanical, engineered: smooth eases, slow push-ins"}
+      - {value: bold,      label: "Bold", note: "Loud kinetic type, slam cuts, flashes, big camera punches"}
+      - {value: playful,   label: "Playful", note: "Springy, bouncy, friendly sway"}
+      - {value: cinematic, label: "Cinematic", note: "Slow dramatic drift, deep vignette, moody"}
+
+  - id: style.energy
+    q: "How energetic should the pacing be?"
+    options:
+      - {value: calm,   label: "Calm", note: "A new visual beat every ~3 s"}
+      - {value: medium, label: "Medium", note: "A beat every ~2 s", recommended: true}
+      - {value: high,   label: "High", note: "A beat every ~1 s, pulses on the beat"}
+
+  - id: audio.music
+    q: "Background music?"
+    options:
+      - {value: media_use, label: "HyperFrames media library / generated", note: "Resolved by HyperFrames' /media-use (needs network or local music model)", recommended: true}
+      - {value: synth,     label: "Built-in offline synth", note: "Simple pad + pluck + beat; works anywhere (needs Python + numpy)"}
+      - {value: musicgen,  label: "MusicGen (local AI)", note: "Richer; needs transformers + torch installed"}
+      - {value: file,      label: "My own track", note: "Give me the file (licensed for this use)"}
+      - {value: none,      label: "No music"}
+
+  - id: audio.music_mood
+    q: "What mood should the music have?"
+    optional: true
+    free: true
+    when: {audio.music: [media_use, synth, musicgen]}
+    options:
+      - {value: "calm, confident, minimal electronic", label: "Calm & confident"}
+      - {value: "driving, energetic, modern electronic", label: "Driving & energetic"}
+      - {value: "warm, optimistic, light", label: "Warm & optimistic"}
+      - {value: "dark, cinematic, tense", label: "Dark & cinematic"}
+
+  - id: audio.sfx
+    q: "Sound effects on the key beats (hits, ticks, whooshes)?"
+    options:
+      - {value: "yes", label: "Yes", note: "Every key visual beat gets a sound", recommended: true}
+      - {value: "no",  label: "No"}
+
+  - id: audio.voiceover
+    q: "Voiceover? (Kokoro is free and runs locally. It does voice only, not music.)"
+    options:
+      - {value: none,   label: "No voiceover", note: "On-screen text carries the message (most reels)", recommended: true}
+      - {value: kokoro, label: "Kokoro voiceover", note: "Adds captions timed to the real speech"}
+
+  - id: audio.voice
+    q: "Which Kokoro voice?"
+    when: {audio.voiceover: kokoro}
+    options:
+      - {value: am_michael,   label: "Michael (US male, calm)"}
+      - {value: am_adam,      label: "Adam (US male, deeper)"}
+      - {value: af_heart,     label: "Heart (US female, warm)"}
+      - {value: af_nova,      label: "Nova (US female, bright)"}
+      - {value: af_sky,       label: "Sky (US female, light)"}
+      - {value: bm_george,    label: "George (UK male)"}
+      - {value: bf_emma,      label: "Emma (UK female)"}
+      - {value: bf_isabella,  label: "Isabella (UK female)"}
+
+  - id: audio.script
+    q: "Voiceover script?"
+    when: {audio.voiceover: kokoro}
+    options:
+      - {value: draft,    label: "Draft it for me", note: "I write it from your idea and show it for approval", recommended: true}
+      - {value: provided, label: "I'll provide it", note: "Paste the exact lines"}
+
+  - id: captions
+    q: "Burned-in captions? (Most viewers watch muted.)"
+    when: {audio.voiceover: kokoro}
+    options:
+      - {value: "yes", label: "Yes, timed to the speech", recommended: true}
+      - {value: "no",  label: "No"}
+
+  - id: cta
+    q: "Call to action at the end?"
+    free: true
+    options:
+      - {value: "{url}", label: "Just the website"}
+      - {value: "Start a project", label: "Start a project"}
+      - {value: "Follow {handle}", label: "Follow the account"}
+      - {value: "none", label: "No CTA"}
+
+  - id: assets.logo
+    q: "This brand has no logo file yet. How should I handle the logo?"
+    when: {_brand_has_logo: false}
+    options:
+      - {value: provided, label: "I'll upload it", note: "Drop it into brands/<brand>/assets/"}
+      - {value: generate, label: "Generate a simple placeholder", note: "Brand name or monogram as an SVG; swap for the real logo later"}
+      - {value: skip,     label: "Skip the logo", note: "Text only", recommended: true}
+
+  - id: assets.other
+    q: "Does the idea need anything beyond animated shapes, text and icons? (photos, screenshots, footage, people)"
+    options:
+      - {value: none,     label: "No, shapes/text/icons are enough", note: "Most reels", recommended: true}
+      - {value: provided, label: "Yes, I'll provide them", note: "Upload to projects/<brand>/<name>/assets/ or brands/<brand>/assets/"}
+      - {value: generate, label: "Generate only what's needed, and ask me first", note: "Procedural graphics only; I won't fabricate photos, people, screenshots or client logos"}
+
+  - id: storyboard
+    q: "Review layout sketches (a visual storyboard) before the build?"
+    options:
+      - {value: "no",  label: "No, my beat-sheet approval is enough", note: "Faster; good for reels under ~15 s", recommended: true}
+      - {value: "yes", label: "Yes, show me frame sketches first", note: "Slower; best for longer or story-heavy pieces"}

@@ -1,0 +1,56 @@
+# Brand: Twofold Labs (researched from https://twofold-labs.com)
+name: Twofold Labs
+slug: twofold-labs
+website: https://twofold-labs.com
+url: twofold-labs.com
+handle: "@twofoldlabs"
+tagline: Engineered & Imagined
+descriptor: "SOFTWARE  ·  CLOUD  ·  CREATIVE TECHNOLOGY"
+positioning: Founder-led software and cloud engineering studio with in-house creative technology (3D, animation, AI art).
+
+colors:
+  bg: "#0b1c30"        # site theme color
+  surface: "#1d3a5c"   # navy blocks
+  accent: "#ffb63d"    # amber, the one color that comes alive
+  text: "#ecf2fa"
+  muted: "#8fa3bd"
+
+fonts:                 # files shipped with every project (HyperFrames only uses fonts that ship as files)
+  heading: shared/fonts/Poppins-Bold.ttf
+  body: shared/fonts/Poppins-Light.ttf
+logo: null             # e.g. assets/logo.svg  (or: node tools/reel.mjs gen-asset twofold-labs wordmark)
+assets: []             # [{url: "...", save_as: assets/logo.png}]  then: reel fetch-assets <slug>
+
+style:
+  dot_grid: true
+  motion: "precise, mechanical, calm. Amber is the only thing that comes alive. No neon, no sparkles."
+  visual_language: "isometric navy blocks and circuit traces; one amber-lit path through a rigid structure"
+
+messages:
+  beliefs:
+    - Good architecture beats clever code.
+    - Ship the smallest thing that proves the idea.
+    - AI is a tool, not a strategy.
+    - If it can't be maintained, it wasn't finished.
+  situations:
+    - The idea is still rough
+    - Operations are fragmented
+    - An existing system is holding you back
+    - Several systems need to work together
+    - Software is becoming business-critical
+    - The technical path is uncertain
+  process: [Understand, Design, Build, Evolve]
+
+music:
+  style: "calm minimal electronic, warm analog pads, soft pluck arpeggio, subtle pulse, precise and confident, no vocals"
+  bpm: 90
+voice:
+  tone: "calm, confident, plain-spoken"
+  kokoro: {voice: am_michael, speed: 0.95}
+
+defaults:              # used by `intake --use-defaults` and shown as the recommended answer
+  format: {preset: feed_4x5}
+  style: {preset: precise, energy: medium}
+  audio: {music: synth, sfx: yes, voiceover: none, voice: am_michael}
+  storyboard: "no"
+  cta: "{url}"

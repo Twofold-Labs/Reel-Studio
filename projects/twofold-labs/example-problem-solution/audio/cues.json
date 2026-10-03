@@ -1,0 +1,7 @@
+[
+  {"at": 0.10, "sfx": "slam", "gain": 0.9}, {"at": 1.30, "sfx": "slam", "gain": 0.9}, {"at": 2.40, "sfx": "slam", "gain": 1.0},
+  {"at": 3.60, "sfx": "riser", "gain": 0.7}, {"at": 3.95, "sfx": "whoosh", "gain": 0.6},
+  {"at": 5.30, "sfx": "tick"}, {"at": 5.44, "sfx": "tick"}, {"at": 5.58, "sfx": "tick"}, {"at": 5.72, "sfx": "tick"},
+  {"at": 5.86, "sfx": "tick"}, {"at": 6.00, "sfx": "tick"}, {"at": 6.14, "sfx": "tick"}, {"at": 6.28, "sfx": "tick"},
+  {"at": 6.60, "sfx": "chime", "gain": 0.8}, {"at": 8.30, "sfx": "chime", "gain": 0.7}
+]

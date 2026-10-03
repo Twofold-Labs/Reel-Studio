@@ -1,0 +1,20 @@
+{
+  "name": "reel-studio",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Brand-driven Instagram reels: our intake, brand packs and house rules on top of HyperFrames (HTML -> MP4).",
+  "engines": { "node": ">=22" },
+  "bin": { "reel": "tools/reel.mjs" },
+  "scripts": {
+    "reel": "node tools/reel.mjs",
+    "setup": "node tools/reel.mjs setup",
+    "doctor": "node tools/reel.mjs doctor"
+  },
+  "dependencies": {
+    "gsap": "^3.14.2",
+    "hyperframes": "0.8.111",
+    "jsdom": "^26.0.0",
+    "yaml": "^2.8.0"
+  }
+}
