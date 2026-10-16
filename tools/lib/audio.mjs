@@ -47,21 +47,38 @@ export function readTranscript(projectDir, { remove = true } = {}) {
 }
 
 /** Kokoro voiceover via `hyperframes tts`, then word timestamps via `hyperframes transcribe` (Parakeet or whisper-cpp).
- *  Writes audio/vo_N.wav, audio/vo_N.words.json and audio/vo.json. Words are relative to each clip's start. */
-export function voice(projectDir) {
+ *  Writes audio/vo_N.wav, audio/vo_N.words.json and audio/vo.json. Words are relative to each clip's start.
+ *  prefix (optional): a second narration in the same project (e.g. a Short cut from a long-form episode) reads
+ *  audio/<prefix>.vo.yaml and writes audio/<prefix>_vo_N.* + audio/<prefix>.vo.json, leaving the main narration untouched. */
+export function voice(projectDir, { resume = false, prefix = "" } = {}) {
   const brief = loadBrief(projectDir), brand = new Brand(brief.brand);
-  const f = path.join(projectDir, "audio", "vo.yaml");
-  if (!exists(f)) throw new Error("audio/vo.yaml missing. Format:\n  start: 0.8\n  gap: 0.35\n  lines:\n    - text: \"First line\"");
+  const P = prefix ? `${prefix}_` : "", J = prefix ? `${prefix}.vo` : "vo";
+  const f = path.join(projectDir, "audio", `${J}.yaml`);
+  if (!exists(f)) throw new Error(`audio/${J}.yaml missing. Format:\n  start: 0.8\n  gap: 0.35\n  lines:\n    - text: \"First line\"`);
   const spec = YAML.parse(fs.readFileSync(f, "utf8")) ?? {};
   const voiceId = spec.voice ?? getPath(brief, "audio.voice") ?? brand.get("voice", "kokoro", "voice") ?? "af_heart";
   const speed = spec.speed ?? brand.get("voice", "kokoro", "speed") ?? 1;
   const english = /^[ab][fm]_/.test(voiceId);
   let cursor = spec.start ?? 0.8, transcriptionNote = null; const out = [];
+  // Natural delivery (playbook/voice.md): each line may set its own `pause` after it (seconds or a class) and `speed`.
+  const PAUSE = { none: 0.08, short: 0.28, normal: 0.5, long: 0.85, beat: 1.2 };
+  const gapAfter = (ln) => (typeof ln.pause === "string" ? PAUSE[ln.pause] ?? 0.5 : ln.pause ?? spec.gap ?? 0.35);
   (spec.lines ?? []).forEach((ln, i) => {
-    const text = brand.fmt(ln.text), file = path.join("audio", `vo_${i + 1}.wav`);
-    const r = hf(["tts", text, "-o", file, "-v", voiceId, "-s", String(speed)], { cwd: projectDir });
-    if (r.code !== 0) throw new Error(`hyperframes tts failed for line ${i + 1}:\n${r.out}${r.err}\nInstall the local voice model: pip install kokoro-onnx soundfile`);
-    const dur = probeDuration(path.join(projectDir, file));
+    const text = brand.fmt(ln.text), file = path.join("audio", `${P}vo_${i + 1}.wav`);
+    const lineSpeed = ln.speed ?? speed;
+    // --resume (long-form: 100+ clips): reuse a clip made earlier for the SAME text, voice and speed (stamped in vo_N.meta.json)
+    const metaF = path.join(projectDir, "audio", `${P}vo_${i + 1}.meta.json`), wordsF = path.join(projectDir, "audio", `${P}vo_${i + 1}.words.json`);
+    const meta = JSON.stringify({ text, voice: voiceId, speed: lineSpeed, breaths: ln.breaths ?? null });
+    if (resume && exists(path.join(projectDir, file)) && exists(wordsF) && exists(metaF) && fs.readFileSync(metaF, "utf8") === meta) {
+      const d0 = probeDuration(path.join(projectDir, file));
+      out.push({ n: i + 1, text, file, start: +cursor.toFixed(2), duration: d0 ? +d0.toFixed(2) : null, end: d0 ? +(cursor + d0).toFixed(2) : null, words: JSON.parse(fs.readFileSync(wordsF, "utf8")) });
+      cursor += (d0 ?? 2) + gapAfter(ln);
+      return;
+    }
+    const r = hf(["tts", text, "-o", file, "-v", voiceId, "-s", String(lineSpeed)], { cwd: projectDir });
+    if (r.code !== 0) throw new Error(`hyperframes tts failed for line ${i + 1}:\n${r.out}${r.err}\nInstall the local voice model: pip install kokoro-onnx soundfile
+(Long scripts: re-run with --resume to keep the clips already made.)`);
+    let dur = probeDuration(path.join(projectDir, file));
     const entry = { n: i + 1, text, file, start: +cursor.toFixed(2), duration: dur ? +dur.toFixed(2) : null, end: dur ? +(cursor + dur).toFixed(2) : null, words: [] };
 
     readTranscript(projectDir); // clear any stale transcript.json
@@ -72,12 +89,21 @@ export function voice(projectDir) {
     } else {
       transcriptionNote ??= (t.err || t.out).split("\n").map((x) => x.trim()).filter(Boolean).slice(-2).join(" | ").slice(0, 220) || `exit ${t.code}`;
     }
-    fs.writeFileSync(path.join(projectDir, "audio", `vo_${i + 1}.words.json`), JSON.stringify(entry.words, null, 2));
+    // breaths: pauses inserted INSIDE a clip at its punctuation (whole-sentence articulation + real pauses; playbook/voice.md)
+    if (ln.breaths?.length) {
+      const res = entry.words.length ? insertBreaths(path.join(projectDir, file), text, entry.words, ln.breaths) : null;
+      if (res) {
+        entry.words = res.words; dur = probeDuration(path.join(projectDir, file));
+        entry.duration = dur ? +dur.toFixed(2) : null; entry.end = dur ? +(cursor + dur).toFixed(2) : null;
+      } else console.warn(`line ${i + 1}: breaths skipped (needs word timestamps that match the script's word count)`);
+    }
+    fs.writeFileSync(wordsF, JSON.stringify(entry.words, null, 2));
+    fs.writeFileSync(metaF, meta);
     out.push(entry);
-    cursor += (dur ?? 2) + (spec.gap ?? 0.35);
+    cursor += (dur ?? 2) + gapAfter(ln);
   });
   const withWords = out.filter((l) => l.words.length).length;
-  fs.writeFileSync(path.join(projectDir, "audio", "vo.json"),
+  fs.writeFileSync(path.join(projectDir, "audio", `${J}.json`),
     JSON.stringify({ voice: voiceId, speed, words_available: withWords === out.length && out.length > 0, lines: out }, null, 2));
   if (withWords < out.length) {
     console.warn(`\nWARNING: no word timestamps for ${out.length - withWords} of ${out.length} line(s): ${transcriptionNote}\n` +
@@ -85,6 +111,62 @@ export function voice(projectDir) {
       `  npx hyperframes models install parakeet     (recommended on Windows, ~640 MB, no compiler)\n`);
   }
   return out;
+}
+
+/** Insert silences into a voice clip at the script's punctuated word boundaries (in order; a 0 skips that boundary).
+ *  Cut points sit at the quietest 5 ms window within +/-90 ms of the gap between the two words; 6 ms fades avoid clicks.
+ *  Returns {words} with timestamps shifted, or null when the transcript can't be mapped 1:1 onto the script words. */
+export function insertBreaths(fileAbs, scriptText, words, breaths) {
+  const tokens = scriptText.split(/\s+/).filter(Boolean);
+  let bounds = tokens.map((t, i) => (i < tokens.length - 1 && /[.,!?;:…]$/.test(t) ? i : -1)).filter((i) => i >= 0);
+  if (tokens.length !== words.length) {
+    // the recogniser merged or split words ("bubble wrap," -> "bubbra,"): align script tokens to transcript words
+    // (edit-distance DP on normalised words) and move each punctuated boundary onto its aligned transcript word
+    const norm = (x) => String(x).toLowerCase().replace(/[^a-z0-9]/g, "");
+    const A = tokens.map(norm), Bw = words.map((w) => norm(w.text ?? w.word ?? "")), n = A.length, m = Bw.length;
+    const D = Array.from({ length: n + 1 }, (_, i) => Array.from({ length: m + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)));
+    for (let i = 1; i <= n; i++) for (let j = 1; j <= m; j++)
+      D[i][j] = Math.min(D[i - 1][j - 1] + (A[i - 1] === Bw[j - 1] ? 0 : 1), D[i - 1][j] + 1, D[i][j - 1] + 1);
+    const al = new Array(n).fill(-1);
+    for (let i = n, j = m; i > 0 && j > 0;) {
+      if (D[i][j] === D[i - 1][j - 1] + (A[i - 1] === Bw[j - 1] ? 0 : 1)) { al[i - 1] = j - 1; i--; j--; }
+      else if (D[i][j] === D[i - 1][j] + 1) i--; else j--;
+    }
+    for (let i = 1; i < n; i++) if (al[i] < 0) al[i] = al[i - 1];          // a merged token belongs to the word before it
+    const mapped = bounds.map((bi) => al[bi]);
+    if (D[n][m] > Math.max(2, n * 0.2) || mapped.some((x) => x < 0 || x >= m - 1) || new Set(mapped).size !== mapped.length) return null;
+    bounds = mapped;
+  }
+  const SR = 24000;
+  const raw = spawnSync("ffmpeg", ["-v", "error", "-i", fileAbs, "-ac", "1", "-ar", String(SR), "-f", "s16le", "-"], { maxBuffer: 1 << 28 });
+  if (raw.status !== 0) return null;
+  const pcm = new Int16Array(raw.stdout.buffer, raw.stdout.byteOffset, raw.stdout.length >> 1), win = SR * 0.005;
+  const energy = (t) => { const a = Math.max(0, Math.round(t * SR)); let e = 0; for (let k = a; k < a + win && k < pcm.length; k++) e += pcm[k] * pcm[k]; return e; };
+  const cuts = [];
+  bounds.forEach((wi, k) => {
+    const pause = breaths[k] ?? 0; if (!(pause > 0)) return;
+    const mid = (words[wi].end + words[wi + 1].start) / 2;
+    let best = mid, be = Infinity;
+    for (let t = mid - 0.09; t <= mid + 0.09; t += 0.005) { const e = energy(t); if (e < be) { be = e; best = t; } }
+    cuts.push({ t: Math.max(0.01, best), pause, after: wi });
+  });
+  if (!cuts.length) return { words };
+  const dur = probeDuration(fileAbs), f = 0.006, parts = [], ins = [];
+  let prev = 0;
+  cuts.forEach((c, k) => {
+    parts.push(`[0:a]atrim=${prev.toFixed(4)}:${c.t.toFixed(4)},asetpts=PTS-STARTPTS,afade=t=in:d=${f}${prev ? "" : ":st=0"},afade=t=out:st=${Math.max(0, c.t - prev - f).toFixed(4)}:d=${f}[s${k}]`);
+    ins.push(`[s${k}]`, `[z${k}]`);
+    parts.push(`anullsrc=r=${SR}:cl=mono,atrim=0:${c.pause}[z${k}]`);
+    prev = c.t;
+  });
+  parts.push(`[0:a]atrim=${prev.toFixed(4)}:${dur},asetpts=PTS-STARTPTS,afade=t=in:d=${f}[s${cuts.length}]`);
+  ins.push(`[s${cuts.length}]`);
+  const tmp = fileAbs.replace(/\.wav$/, ".breath.tmp.wav");
+  const r = spawnSync("ffmpeg", ["-v", "error", "-y", "-i", fileAbs, "-filter_complex", `${parts.join(";")};${ins.join("")}concat=n=${ins.length}:v=0:a=1[o]`, "-map", "[o]", "-ar", String(SR), "-ac", "1", tmp], { encoding: "utf8" });
+  if (r.status !== 0) { console.warn(r.stderr); return null; }
+  fs.renameSync(tmp, fileAbs);
+  const shifted = words.map((w, i) => { const add = cuts.filter((c) => i > c.after).reduce((a, c) => a + c.pause, 0); return { ...w, start: +(w.start + add).toFixed(3), end: +(w.end + add).toFixed(3) }; });
+  return { words: shifted };
 }
 
 /** Offline synth bed (Python + numpy). cues from audio/cues.json. */

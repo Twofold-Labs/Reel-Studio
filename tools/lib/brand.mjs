@@ -79,7 +79,7 @@ ${faces}
 :root {
   --brand-bg: ${c.bg}; --brand-surface: ${c.surface}; --brand-accent: ${c.accent};
   --brand-text: ${c.text}; --brand-muted: ${c.muted};
-  --font-heading: "BrandHeading", system-ui, sans-serif;
+${Object.entries(brand.get("palette") ?? {}).map(([k, v]) => `  --c-${k}: ${v};`).join("\n")}${brand.get("palette") ? "\n" : ""}  --font-heading: "BrandHeading", system-ui, sans-serif;
   --font-body: "BrandBody", system-ui, sans-serif;
   /* safe zone for ${f.label}: keep key content inside these insets */
   --canvas-w: ${f.w}px; --canvas-h: ${f.h}px;

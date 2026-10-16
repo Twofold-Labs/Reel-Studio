@@ -1,5 +1,14 @@
+# Dependencies
 node_modules/
-projects/*/*/renders/
-projects/*/*/.debug/
+
+# Ignore entire directories
+projects/
+
+brands/
+!brands/_template/
+
+# Logs
 *.log
+
+# Python
 __pycache__/

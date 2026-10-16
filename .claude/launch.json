@@ -1,0 +1,41 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "lf4-static",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8784",
+        "--directory",
+        "projects/unfold-the-why/sun-disappeared"
+      ],
+      "port": 8784
+    },
+    {
+      "name": "utw009-static",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8791",
+        "--directory",
+        "projects/unfold-the-why/why-we-dream"
+      ],
+      "port": 8791
+    },
+    {
+      "name": "tbw006-static",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8806",
+        "--directory",
+        "projects/the-box-warehouse/06-empty-space"
+      ],
+      "port": 8806
+    }
+  ]
+}

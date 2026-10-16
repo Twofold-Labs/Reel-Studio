@@ -18,7 +18,12 @@ colors:
 fonts:                 # files shipped with every project (HyperFrames only uses fonts that ship as files)
   heading: shared/fonts/Poppins-Bold.ttf
   body: shared/fonts/Poppins-Light.ttf
-logo: null             # e.g. assets/logo.svg  (or: node tools/reel.mjs gen-asset twofold-labs wordmark)
+logo: assets/logo-bg-dark.svg   # primary for video (our backgrounds are dark ink)
+logo_identity:
+  variants:
+    on_dark:  {file: assets/logo-bg-dark.svg, use: "default in reels: cream wordmark + amber/navy mark, for dark ink backgrounds"}
+    on_light: {file: assets/logo.svg, use: "navy wordmark, for light/paper backgrounds only"}
+  rules: "never recolour the logo; logo palette (cream #f9f6f3, amber #f4a62a, navy #0b1c30) is independent of the video colours"
 assets: []             # [{url: "...", save_as: assets/logo.png}]  then: reel fetch-assets <slug>
 
 style:
@@ -49,7 +54,7 @@ voice:
   kokoro: {voice: am_michael, speed: 0.95}
 
 defaults:              # used by `intake --use-defaults` and shown as the recommended answer
-  format: {preset: feed_4x5}
+  format: {preset: reel_9x16}
   style: {preset: precise, energy: medium}
   audio: {music: synth, sfx: yes, voiceover: none, voice: am_michael}
   storyboard: "no"

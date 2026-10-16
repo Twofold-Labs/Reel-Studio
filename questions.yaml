@@ -41,6 +41,14 @@ questions:
       - {value: feed_4x5,   label: "Feed 4:5 (1080×1350)", note: "Best for the profile grid and feed", recommended: true}
       - {value: reel_9x16,  label: "Reel / Story 9:16 (1080×1920)", note: "Full-screen vertical; the UI covers the top and bottom, so content stays in the safe zone"}
       - {value: square_1x1, label: "Square 1:1 (1080×1080)"}
+      - {value: wide_16x9,  label: "YouTube long-form 16:9 (1920×1080)", note: "Long-form only: set content_mode=long (chapters, subtitles, mode-aware lint)"}
+
+  - id: content_mode
+    q: "Short or long-form?"
+    optional: true
+    options:
+      - {value: short, label: "Short (Shorts / Reels)", note: "45-90 s, short-form pacing rules apply", recommended: true}
+      - {value: long,  label: "Long-form (YouTube)", note: "4-10 min, chapters; short-form pacing lint is advisory only (playbook/content-modes.md)"}
 
   - id: duration
     q: "How long?"

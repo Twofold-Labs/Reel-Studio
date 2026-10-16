@@ -27,7 +27,7 @@ const HELP = `reel: brand-driven reels on top of HyperFrames
            render <project> [--draft] [--force] [--fps=30] [--quality=looks|delivery|draft]
            validate <project>                  run in headless Chrome to catch runtime errors (needs Chrome)
            studio <project>                    OPTIONAL live Studio preview (long-lived server; Ctrl+C to stop)
- audio     voice <project>                     Kokoro TTS + word timestamps from audio/vo.yaml
+ audio     voice <project> [--resume] [--prefix=reel-01]  Kokoro TTS + word timestamps from audio/vo.yaml (--prefix: a second narration, e.g. a Short, from audio/<prefix>.vo.yaml)
            synth <project>                     offline music/SFX bed from audio/cues.json (python3 + numpy)
  brands    new-brand <slug>   gen-asset <slug> wordmark|monogram   fetch-assets <slug>
  system    list   doctor   setup`;
@@ -112,9 +112,9 @@ async function main() {
     }
 
     case "voice": {
-      const out = audio.voice(resolveProject(pos[0]));
+      const out = audio.voice(resolveProject(pos[0]), { resume: !!flags.resume, prefix: flags.prefix ? String(flags.prefix) : "" });
       for (const l of out) console.log(`  ${l.n}. ${l.start}s -> ${l.end ?? "?"}s  (${l.duration ?? "?"}s)  "${l.text.slice(0, 60)}"  words: ${Array.isArray(l.words) ? l.words.length : 0}`);
-      console.log("wrote audio/vo.json. Set scene times to these, add <audio> tags, and build captions from the word timestamps."); return;
+      console.log(`wrote audio/${flags.prefix ? flags.prefix + ".vo" : "vo"}.json. Set scene times to these, add <audio> tags, and build captions from the word timestamps.`); return;
     }
     case "synth": { console.log(audio.synth(resolveProject(pos[0]))); return; }
 

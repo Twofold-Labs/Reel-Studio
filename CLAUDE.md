@@ -47,7 +47,8 @@ Then author the composition by following the HyperFrames skills (`/hyperframes` 
 Use the tested GSAP patterns in `playbook/engagement.md` (slam, camera path, loop-safe fade). After changing the brief or brand: `node tools/reel.mjs sync <project>`.
 Worked example to copy from: `projects/twofold-labs/example-problem-solution/`.
 
-## 6. Audio → `playbook/audio.md`
+## 6. Audio → `playbook/audio.md`, `playbook/voice.md`
+**Every voiceover must sound human: phrase-by-phrase lines with designed pauses and per-line pace (`pause`/`speed` in `audio/vo.yaml`), never one continuous read** (`playbook/voice.md`; applies to all brands). Pick the voice per brand.yaml (some brands set a different voice per video type).
 Kokoro voiceover: `audio/vo.yaml` → `node tools/reel.mjs voice <project>` (real durations + word timestamps) → time scenes and captions from `audio/vo.json`. Music/SFX: HyperFrames `/media-use`, or offline `reel synth` with `audio/cues.json`. Cue every key visual beat. If a model/tool isn't installed, say so, use the offline path for drafts, and tell the user what to install. Never clone a real person's voice without confirmed consent.
 
 ## 7. Verify (all before the final render)
@@ -68,6 +69,9 @@ Supported content modes:
 - long
 
 Do not create separate brands for long-form and short-form content of the same channel.
+
+- Short and long content must **not** share identical pacing rules (see `playbook/content-modes.md`). Tooling currently models short reels only.
+- Brand logo colours may differ from the brand's video colours: use `colors`/`palette` for video and never recolour the logo.
 
 ## Conventions
 - Never hardcode brand colours/fonts/names/URLs in compositions: use the CSS variables in `assets/brand/tokens.css`. Fonts only from `assets/brand/fonts/`.
