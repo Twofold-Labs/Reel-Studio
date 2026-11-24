@@ -112,6 +112,7 @@ questions:
     options:
       - {value: am_michael,   label: "Michael (US male, calm)"}
       - {value: am_adam,      label: "Adam (US male, deeper)"}
+      - {value: am_fenrir,    label: "Fenrir (US male, energetic documentary)"}
       - {value: af_heart,     label: "Heart (US female, warm)"}
       - {value: af_nova,      label: "Nova (US female, bright)"}
       - {value: af_sky,       label: "Sky (US female, light)"}

@@ -2,6 +2,7 @@
   "name": "reel-studio",
   "version": "2.0.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "description": "Brand-driven Instagram reels: our intake, brand packs and house rules on top of HyperFrames (HTML -> MP4).",
   "engines": {

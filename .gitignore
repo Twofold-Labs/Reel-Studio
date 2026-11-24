@@ -1,14 +1,35 @@
 # Dependencies
 node_modules/
 
-# Ignore entire directories
-projects/
+# Your own work stays private. Only the Twofold Labs example and the brand template are tracked.
+projects/*
+!projects/twofold-labs/
+projects/twofold-labs/*
+!projects/twofold-labs/example-problem-solution/
+projects/twofold-labs/example-problem-solution/renders/
 
-brands/
+brands/*
 !brands/_template/
+!brands/twofold-labs/
+
+# Local tooling, editor and agent state (may contain API keys)
+.claude/settings.local.json
+.claude/launch.json
+.claude/scheduled_tasks.lock
+.claude/testing/
+.tts-lab/
+.env
+.env.*
 
 # Logs
 *.log
 
 # Python
 __pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db

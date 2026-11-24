@@ -1,6 +1,6 @@
 # Recipe: problem-solution (12 s)
 **Use for:** promote / educate. Pain -> relief -> calm payoff -> CTA. **Workflow:** motion-graphics (<= 10 s) or general-video.
-**Worked example:** `projects/twofold-labs/example-problem-solution/` (passes `reel check`; not render-tested in the authoring sandbox).
+**Worked example:** `projects/twofold-labs/example-problem-solution/` (passes `reel check`; a draft render has been produced).
 
 | Time | Beat | Notes |
 |---|---|---|
